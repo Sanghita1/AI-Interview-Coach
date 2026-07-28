@@ -1,8 +1,10 @@
 import os
 
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+# from google import genai
+# from google.genai import types
+from openai import OpenAI
+import json
 
 from app.models.interview_models import InterviewPlan
 from app.models.interview_report_model import FinalInterviewReport
@@ -27,11 +29,13 @@ class GeminiService:
 
     def __init__(self):
 
-        self.client = genai.Client(
-            api_key=os.getenv("GEMINI_API_KEY")
-        )
+        # self.client = genai.Client(
+        #     api_key=os.getenv("GEMINI_API_KEY")
+        # )
 
-        self.model = "gemini-2.5-flash"
+        # self.model = "gemini-2.5-flash"
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.model = "gpt-4o-mini"
 
     def generate_interview_plan(
         self,
@@ -51,18 +55,19 @@ Job Description:
 {job_description}
 """
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=InterviewPlan,
-                temperature=0.3,
-            ),
+        response = self.client.beta.chat.completions.parse(
+        model=self.model,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=InterviewPlan,
+        temperature=0.3,
         )
 
-        return response.parsed
-
+        return response.choices[0].message.parsed
     def generate_question(
 
     self,
@@ -96,25 +101,19 @@ Job Description:
     # {interview_plan.total_questions}
     """
 
-        response = self.client.models.generate_content(
-
-            model=self.model,
-
-            contents=prompt,
-
-            config=types.GenerateContentConfig(
-
-                response_mime_type="application/json",
-
-                response_schema=InterviewQuestion,
-
-                temperature=0.3
-
-            )
-
+        response = self.client.beta.chat.completions.parse(
+        model=self.model,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=InterviewQuestion,
+        temperature=0.3,
         )
 
-        return response.parsed
+        return response.choices[0].message.parsed
 
     def evaluate_answer(self,question,answer):
 
@@ -138,17 +137,19 @@ Job Description:
     {answer}
     """
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=InterviewEvaluation,
-                temperature=0.2
-            ),
+        response = self.client.beta.chat.completions.parse(
+        model=self.model,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=InterviewEvaluation,
+        temperature=0.2,
         )
 
-        return response.parsed
+        return response.choices[0].message.parsed
 
     def generate_followup_question(
     self,
@@ -167,23 +168,19 @@ Job Description:
     {evaluation.model_dump_json(indent=2)}
         """
 
-        response = self.client.models.generate_content(
-
-            model=self.model,
-
-            contents=prompt,
-
-            config=types.GenerateContentConfig(
-
-                response_mime_type="application/json",
-
-                response_schema=InterviewQuestion,
-
-                temperature=0.3
-            )
+        response = self.client.beta.chat.completions.parse(
+        model=self.model,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=InterviewQuestion,
+        temperature=0.3,
         )
 
-        return response.parsed
+        return response.choices[0].message.parsed
 
     def generate_final_report(self,resume,job_description,interview_plan,transcript):
         prompt = f"""
@@ -205,18 +202,19 @@ Interview Transcript
 
 {transcript}
     """
-        response = self.client.models.generate_content(
+        response = self.client.beta.chat.completions.parse(
         model=self.model,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=FinalInterviewReport,
-            temperature=0.3
-        )
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=FinalInterviewReport,
+        temperature=0.3,
         )
 
-        return response.parsed
-
+        return response.choices[0].message.parsed
         
 
     
