@@ -3,7 +3,7 @@
 
 const API_BASE =
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_URL) ||
-  "http://localhost:8000";
+  "https://ai-interview-coach-y7m9.onrender.com";
 
 const SESSION_KEY = "aic_session_id";
 
