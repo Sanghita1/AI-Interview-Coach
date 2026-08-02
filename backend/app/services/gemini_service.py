@@ -36,6 +36,7 @@ class GeminiService:
         # self.model = "gemini-2.5-flash"
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.model = "gpt-4o-mini"
+        self.model2 = "gpt-4.1-mini"
 
     def generate_interview_plan(
         self,
@@ -50,7 +51,7 @@ Candidate Resume:
 
 {resume}
 
-Job Description:
+Job Description Summary:
 
 {job_description}
 """
@@ -91,7 +92,7 @@ Job Description:
     Resume
     {resume}
 
-    Job Description
+    Job Description Summary
     {job_description}
 
     Question Number
@@ -102,7 +103,7 @@ Job Description:
     """
 
         response = self.client.beta.chat.completions.parse(
-        model=self.model,
+        model=self.model2,
         messages=[
             {
                 "role": "user",
@@ -138,7 +139,7 @@ Job Description:
     """
 
         response = self.client.beta.chat.completions.parse(
-        model=self.model,
+        model=self.model2,
         messages=[
             {
                 "role": "user",
@@ -169,7 +170,7 @@ Job Description:
         """
 
         response = self.client.beta.chat.completions.parse(
-        model=self.model,
+        model=self.model2,
         messages=[
             {
                 "role": "user",
@@ -182,7 +183,7 @@ Job Description:
 
         return response.choices[0].message.parsed
 
-    def generate_final_report(self,resume,job_description,interview_plan,transcript):
+    def generate_final_report(self,resume,job_description,transcript):
         prompt = f"""
     {FINAL_REPORT_PROMPT}
 
@@ -190,13 +191,10 @@ Resume
 
 {resume}
 
-Job Description
+Job Description Summary
 
 {job_description}
 
-Interview Plan
-
-{interview_plan.model_dump_json(indent=2)}
 
 Interview Transcript
 
@@ -215,6 +213,39 @@ Interview Transcript
         )
 
         return response.choices[0].message.parsed
+
+    def generate_job_profile(self, job_description):
+        prompt = f"""
+    You are an expert technical recruiter.
+
+    Summarize the following job description into a concise technical profile for an AI interviewer.
+
+    Include:
+    - Role
+    - Required Skills
+    - Preferred Skills
+    - Key Responsibilities
+    - Experience Level
+
+    Keep it under 200 words.
+
+    Job Description:
+
+    {job_description}
+    """
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            temperature=0.2,
+        )
+
+        return response.choices[0].message.content.strip()
         
 
     

@@ -81,7 +81,8 @@ def decide_next_step(state):
     evaluation = state["last_evaluation"]
 
     if (evaluation.follow_up_required and not state["current_question"].is_followup):
-        return "followup"
+        if(evaluation.score >(state["current_question"].max_score/2) and evaluation.score < (state["current_question"].max_score-1)):
+            return "followup"
 
     return "next_question"
 

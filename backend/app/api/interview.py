@@ -24,7 +24,10 @@ async def upload_job_description(
             status_code=404,
             detail="Invalid session."
         )
-    session.job_description = request.jobDescription
+    job_description_summary = gemini_service.generate_job_profile(request.jobDescription)
+
+    session.job_description = job_description_summary
+    
 
     return {
         "message": "Job Description Saved Successfully",
@@ -179,7 +182,7 @@ async def generate_final_report(session_id: str):
     report = gemini_service.generate_final_report(
         resume=session.resume,
         job_description=session.job_description,
-        interview_plan=session.interview_plan,
+        # interview_plan=session.interview_plan,
         transcript=transcript,
     )
 
